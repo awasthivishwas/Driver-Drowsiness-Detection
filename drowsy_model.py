@@ -32,3 +32,67 @@ test_datagen = ImageDataGenerator(rescale=1./255)
 val_datagen = ImageDataGenerator(rescale=1./255)
 
 print(train_datagen)
+
+train_batches = train_datagen.flow_from_directory(
+    train_dir,
+    target_size=(224, 224),
+    batch_size=16,
+    class_mode='binary',
+    shuffle=True
+)
+
+test_batches = test_datagen.flow_from_directory(
+    test_dir,
+    target_size=(224, 224),
+    batch_size=16,
+    class_mode='binary' ,
+    shuffle=True
+)
+
+val_batches = val_datagen.flow_from_directory(
+    val_dir,
+    target_size=(224, 224),
+    batch_size=16,
+    class_mode='binary',
+    shuffle=True
+)
+
+print(train_batches)
+
+train_class_indices = train_batches.class_indices
+test_class_indices = test_batches.class_indices
+val_class_indices = val_batches.class_indices
+
+train_class_labels = train_batches.classes
+test_class_labels = test_batches.classes
+val_class_labels = val_batches.classes
+
+
+print(train_class_indices)
+train_class_counts = Counter(train_class_labels)
+test_class_counts = Counter(test_class_labels)
+val_class_counts = Counter(val_class_labels)
+
+print(train_class_counts)
+
+base_model = MobileNetV2(
+    weights='imagenet', 
+    include_top=False, 
+    input_shape=(224, 224, 3),
+)
+
+type(base_model)
+base_model.summary()
+model=keras.Sequential() 
+
+for layer in base_model.layers[:-25] :
+    layer.trainable = False
+
+x = base_model.output
+x = Flatten()(x)
+x = Dense(1024, activation='relu')(x)
+x = Dense(512, activation='relu')(x)
+predictions = Dense(2, activation='softmax')(x)
+
+model = Model(inputs=base_model.input, outputs=predictions)
+model.summary()
