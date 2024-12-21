@@ -96,3 +96,26 @@ predictions = Dense(2, activation='softmax')(x)
 
 model = Model(inputs=base_model.input, outputs=predictions)
 model.summary()
+
+
+model.compile(optimizer=Adam(0.0001 ), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+history = model.fit(
+   train_batches,
+    epochs=10,
+    validation_data=val_batches,
+    batch_size=32
+)
+
+y_pred = model.predict(test_batches)
+
+y_pred_labels = np.argmax(y_pred, axis=1)
+y_actual = test_batches.labels
+
+conf_matrix = confusion_matrix(y_actual, y_pred_labels)
+
+print(conf_matrix)
+report = classification_report(y_actual, y_pred_labels)
+print(report)
+
+filename = 'model.sav'
+joblib.dump(model, filename)
